@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.AlarmClock;
 
 import java.util.Calendar;
 
@@ -36,13 +35,12 @@ public class MainActivity extends Activity {
         alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
 
         Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(System.currentTimeMillis());
 
         int ALARM_TYPE = AlarmManager.RTC_WAKEUP;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             alarmMgr.setExactAndAllowWhileIdle(ALARM_TYPE, calendar.getTimeInMillis(), alarmIntent);
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            alarmMgr.setExact(ALARM_TYPE, calendar.getTimeInMillis(), alarmIntent);
+            alarmMgr.setExact(ALARM_TYPE, 60000, alarmIntent);
         else
             alarmMgr.set(ALARM_TYPE, calendar.getTimeInMillis(), alarmIntent);
 
