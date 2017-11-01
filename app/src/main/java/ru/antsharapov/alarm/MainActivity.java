@@ -3,46 +3,51 @@ package ru.antsharapov.alarm;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import java.util.Calendar;
 
-public class MainActivity extends Activity {
 
-    private AlarmManager alarmMgr;
-    private PendingIntent alarmIntent;
+public class MainActivity extends Activity {
+    AlarmManager mgr;
+    PendingIntent pi;
+    Calendar myCal;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ComponentName receiver = new ComponentName(getApplicationContext(), BootReceiver.class);
-        PackageManager pm = getApplicationContext().getPackageManager();
+        Button b = (Button) findViewById(R.id.button);
+        b.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Context context = getApplicationContext();
+                mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+                Intent i = new Intent(context, AlarmReceiver.class);
+                pi = PendingIntent.getBroadcast(context, 0, i, 0);
+                myCal = Calendar.getInstance();
+                myCal.setTimeInMillis(System.currentTimeMillis()+6000);
+                mgr.set(AlarmManager.RTC_WAKEUP, myCal.getTimeInMillis(), pi);
+                Log.i("myTag:", "alarm set for " + myCal.getTime());
+                Toast.makeText(getApplicationContext(),"Alarm set for " + myCal.getTime(), Toast.LENGTH_LONG).show();
 
-        pm.setComponentEnabledSetting(receiver,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP);
+            }
+        });
 
-        alarmMgr = (AlarmManager)getApplicationContext().getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
-        intent.setAction("ru.antsharapov.alarm.action");
-        alarmIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        Button s = (Button) findViewById(R.id.button1);
+        s.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mgr.cancel(pi);
+            }
+        });
 
-        Calendar calendar = Calendar.getInstance();
-
-        int ALARM_TYPE = AlarmManager.RTC_WAKEUP;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            alarmMgr.setExactAndAllowWhileIdle(ALARM_TYPE, calendar.getTimeInMillis(), alarmIntent);
-        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            alarmMgr.setExact(ALARM_TYPE, 60000, alarmIntent);
-        else
-            alarmMgr.set(ALARM_TYPE, calendar.getTimeInMillis(), alarmIntent);
-
-    }
+            }
 }
